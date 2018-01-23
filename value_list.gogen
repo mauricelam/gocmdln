@@ -1,0 +1,58 @@
+package params
+
+import (
+    "time"
+
+    "github.com/cheekybits/genny/generic"
+)
+
+type gen generic.Type
+
+// GenValueList is a list of gen that can receive a list of values
+type GenValueList []gen
+
+// Set sets the list of strings onto the string
+func (list *GenValueList) Set(strings []string) error {
+    for _, s := range strings {
+        iv := new(GenValue)
+        err := iv.Set(s)
+        if err != nil { return err }
+        *list = append(*list, gen(*iv))
+    }
+    return nil
+}
+
+func (ps *paramSet) Gen(name string, optional bool) *gen {
+    var tmp gen
+    sv := NewGenValue(tmp, &tmp)
+    Var(sv, name, optional)
+    return &tmp
+}
+
+// Gen creates a parameter of type gen.
+func Gen(name string, optional bool) *gen {
+    return defaultParamSet.Gen(name, optional)
+}
+
+func (ps *paramSet) GenList(name string, optional bool) *[]gen {
+    minLength := 0
+    if !optional { minLength = 1 }
+    return GenListCustom(name, minLength, -1)
+}
+
+// GenList creates a parameter of type gen that captures all the remaining arguments.
+func GenList(name string, optional bool) *[]gen {
+    return defaultParamSet.GenList(name, optional)
+}
+
+func (ps *paramSet) GenListCustom(name string, minLength int, maxLength int) *[]gen {
+    list := new(GenValueList)
+    VarListCustom(list, name, minLength, maxLength)
+    return (*[]gen)(list)
+}
+
+// GenListCustom creates a parameter of type gen that captures a list of the specified min and
+// max length from the remaining arguments
+func GenListCustom(name string, minLength int, maxLength int) *[]gen {
+    return defaultParamSet.GenListCustom(name, minLength, maxLength)
+}

@@ -22,41 +22,41 @@ func (list *BoolValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Bool(name string, optional bool) *bool {
+func (ps *ParamSet) Bool(name string, optional bool, metadata interface{}) *bool {
 	var tmp bool
 	sv := NewBoolValue(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Bool creates a parameter of type bool.
-func Bool(name string, optional bool) *bool {
-	return defaultParamSet.Bool(name, optional)
+func Bool(name string, optional bool, metadata interface{}) *bool {
+	return defaultParamSet.Bool(name, optional, metadata)
 }
 
-func (ps *paramSet) BoolList(name string, optional bool) *[]bool {
+func (ps *ParamSet) BoolList(name string, optional bool, metadata interface{}) *[]bool {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return BoolListCustom(name, minLength, -1)
+	return ps.BoolListCustom(name, minLength, -1, metadata)
 }
 
 // BoolList creates a parameter of type bool that captures all the remaining arguments.
-func BoolList(name string, optional bool) *[]bool {
-	return defaultParamSet.BoolList(name, optional)
+func BoolList(name string, optional bool, metadata interface{}) *[]bool {
+	return defaultParamSet.BoolList(name, optional, metadata)
 }
 
-func (ps *paramSet) BoolListCustom(name string, minLength int, maxLength int) *[]bool {
+func (ps *ParamSet) BoolListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]bool {
 	list := new(BoolValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]bool)(list)
 }
 
 // BoolListCustom creates a parameter of type bool that captures a list of the specified min and
 // max length from the remaining arguments
-func BoolListCustom(name string, minLength int, maxLength int) *[]bool {
-	return defaultParamSet.BoolListCustom(name, minLength, maxLength)
+func BoolListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]bool {
+	return defaultParamSet.BoolListCustom(name, minLength, maxLength, metadata)
 }
 
 // StringValueList is a list of string that can receive a list of values
@@ -75,41 +75,41 @@ func (list *StringValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) String(name string, optional bool) *string {
+func (ps *ParamSet) String(name string, optional bool, metadata interface{}) *string {
 	var tmp string
 	sv := NewStringValue(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // String creates a parameter of type string.
-func String(name string, optional bool) *string {
-	return defaultParamSet.String(name, optional)
+func String(name string, optional bool, metadata interface{}) *string {
+	return defaultParamSet.String(name, optional, metadata)
 }
 
-func (ps *paramSet) StringList(name string, optional bool) *[]string {
+func (ps *ParamSet) StringList(name string, optional bool, metadata interface{}) *[]string {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return StringListCustom(name, minLength, -1)
+	return ps.StringListCustom(name, minLength, -1, metadata)
 }
 
 // StringList creates a parameter of type string that captures all the remaining arguments.
-func StringList(name string, optional bool) *[]string {
-	return defaultParamSet.StringList(name, optional)
+func StringList(name string, optional bool, metadata interface{}) *[]string {
+	return defaultParamSet.StringList(name, optional, metadata)
 }
 
-func (ps *paramSet) StringListCustom(name string, minLength int, maxLength int) *[]string {
+func (ps *ParamSet) StringListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]string {
 	list := new(StringValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]string)(list)
 }
 
 // StringListCustom creates a parameter of type string that captures a list of the specified min and
 // max length from the remaining arguments
-func StringListCustom(name string, minLength int, maxLength int) *[]string {
-	return defaultParamSet.StringListCustom(name, minLength, maxLength)
+func StringListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]string {
+	return defaultParamSet.StringListCustom(name, minLength, maxLength, metadata)
 }
 
 // IntValueList is a list of int that can receive a list of values
@@ -128,41 +128,41 @@ func (list *IntValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Int(name string, optional bool) *int {
+func (ps *ParamSet) Int(name string, optional bool, metadata interface{}) *int {
 	var tmp int
 	sv := NewIntValue(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Int creates a parameter of type int.
-func Int(name string, optional bool) *int {
-	return defaultParamSet.Int(name, optional)
+func Int(name string, optional bool, metadata interface{}) *int {
+	return defaultParamSet.Int(name, optional, metadata)
 }
 
-func (ps *paramSet) IntList(name string, optional bool) *[]int {
+func (ps *ParamSet) IntList(name string, optional bool, metadata interface{}) *[]int {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return IntListCustom(name, minLength, -1)
+	return ps.IntListCustom(name, minLength, -1, metadata)
 }
 
 // IntList creates a parameter of type int that captures all the remaining arguments.
-func IntList(name string, optional bool) *[]int {
-	return defaultParamSet.IntList(name, optional)
+func IntList(name string, optional bool, metadata interface{}) *[]int {
+	return defaultParamSet.IntList(name, optional, metadata)
 }
 
-func (ps *paramSet) IntListCustom(name string, minLength int, maxLength int) *[]int {
+func (ps *ParamSet) IntListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]int {
 	list := new(IntValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]int)(list)
 }
 
 // IntListCustom creates a parameter of type int that captures a list of the specified min and
 // max length from the remaining arguments
-func IntListCustom(name string, minLength int, maxLength int) *[]int {
-	return defaultParamSet.IntListCustom(name, minLength, maxLength)
+func IntListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]int {
+	return defaultParamSet.IntListCustom(name, minLength, maxLength, metadata)
 }
 
 // Int64ValueList is a list of int64 that can receive a list of values
@@ -181,41 +181,41 @@ func (list *Int64ValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Int64(name string, optional bool) *int64 {
+func (ps *ParamSet) Int64(name string, optional bool, metadata interface{}) *int64 {
 	var tmp int64
 	sv := NewInt64Value(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Int64 creates a parameter of type int64.
-func Int64(name string, optional bool) *int64 {
-	return defaultParamSet.Int64(name, optional)
+func Int64(name string, optional bool, metadata interface{}) *int64 {
+	return defaultParamSet.Int64(name, optional, metadata)
 }
 
-func (ps *paramSet) Int64List(name string, optional bool) *[]int64 {
+func (ps *ParamSet) Int64List(name string, optional bool, metadata interface{}) *[]int64 {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return Int64ListCustom(name, minLength, -1)
+	return ps.Int64ListCustom(name, minLength, -1, metadata)
 }
 
 // Int64List creates a parameter of type int64 that captures all the remaining arguments.
-func Int64List(name string, optional bool) *[]int64 {
-	return defaultParamSet.Int64List(name, optional)
+func Int64List(name string, optional bool, metadata interface{}) *[]int64 {
+	return defaultParamSet.Int64List(name, optional, metadata)
 }
 
-func (ps *paramSet) Int64ListCustom(name string, minLength int, maxLength int) *[]int64 {
+func (ps *ParamSet) Int64ListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]int64 {
 	list := new(Int64ValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]int64)(list)
 }
 
 // Int64ListCustom creates a parameter of type int64 that captures a list of the specified min and
 // max length from the remaining arguments
-func Int64ListCustom(name string, minLength int, maxLength int) *[]int64 {
-	return defaultParamSet.Int64ListCustom(name, minLength, maxLength)
+func Int64ListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]int64 {
+	return defaultParamSet.Int64ListCustom(name, minLength, maxLength, metadata)
 }
 
 // UintValueList is a list of uint that can receive a list of values
@@ -234,41 +234,41 @@ func (list *UintValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Uint(name string, optional bool) *uint {
+func (ps *ParamSet) Uint(name string, optional bool, metadata interface{}) *uint {
 	var tmp uint
 	sv := NewUintValue(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Uint creates a parameter of type uint.
-func Uint(name string, optional bool) *uint {
-	return defaultParamSet.Uint(name, optional)
+func Uint(name string, optional bool, metadata interface{}) *uint {
+	return defaultParamSet.Uint(name, optional, metadata)
 }
 
-func (ps *paramSet) UintList(name string, optional bool) *[]uint {
+func (ps *ParamSet) UintList(name string, optional bool, metadata interface{}) *[]uint {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return UintListCustom(name, minLength, -1)
+	return ps.UintListCustom(name, minLength, -1, metadata)
 }
 
 // UintList creates a parameter of type uint that captures all the remaining arguments.
-func UintList(name string, optional bool) *[]uint {
-	return defaultParamSet.UintList(name, optional)
+func UintList(name string, optional bool, metadata interface{}) *[]uint {
+	return defaultParamSet.UintList(name, optional, metadata)
 }
 
-func (ps *paramSet) UintListCustom(name string, minLength int, maxLength int) *[]uint {
+func (ps *ParamSet) UintListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]uint {
 	list := new(UintValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]uint)(list)
 }
 
 // UintListCustom creates a parameter of type uint that captures a list of the specified min and
 // max length from the remaining arguments
-func UintListCustom(name string, minLength int, maxLength int) *[]uint {
-	return defaultParamSet.UintListCustom(name, minLength, maxLength)
+func UintListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]uint {
+	return defaultParamSet.UintListCustom(name, minLength, maxLength, metadata)
 }
 
 // Uint64ValueList is a list of uint64 that can receive a list of values
@@ -287,41 +287,41 @@ func (list *Uint64ValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Uint64(name string, optional bool) *uint64 {
+func (ps *ParamSet) Uint64(name string, optional bool, metadata interface{}) *uint64 {
 	var tmp uint64
 	sv := NewUint64Value(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Uint64 creates a parameter of type uint64.
-func Uint64(name string, optional bool) *uint64 {
-	return defaultParamSet.Uint64(name, optional)
+func Uint64(name string, optional bool, metadata interface{}) *uint64 {
+	return defaultParamSet.Uint64(name, optional, metadata)
 }
 
-func (ps *paramSet) Uint64List(name string, optional bool) *[]uint64 {
+func (ps *ParamSet) Uint64List(name string, optional bool, metadata interface{}) *[]uint64 {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return Uint64ListCustom(name, minLength, -1)
+	return ps.Uint64ListCustom(name, minLength, -1, metadata)
 }
 
 // Uint64List creates a parameter of type uint64 that captures all the remaining arguments.
-func Uint64List(name string, optional bool) *[]uint64 {
-	return defaultParamSet.Uint64List(name, optional)
+func Uint64List(name string, optional bool, metadata interface{}) *[]uint64 {
+	return defaultParamSet.Uint64List(name, optional, metadata)
 }
 
-func (ps *paramSet) Uint64ListCustom(name string, minLength int, maxLength int) *[]uint64 {
+func (ps *ParamSet) Uint64ListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]uint64 {
 	list := new(Uint64ValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]uint64)(list)
 }
 
 // Uint64ListCustom creates a parameter of type uint64 that captures a list of the specified min and
 // max length from the remaining arguments
-func Uint64ListCustom(name string, minLength int, maxLength int) *[]uint64 {
-	return defaultParamSet.Uint64ListCustom(name, minLength, maxLength)
+func Uint64ListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]uint64 {
+	return defaultParamSet.Uint64ListCustom(name, minLength, maxLength, metadata)
 }
 
 // Float64ValueList is a list of float64 that can receive a list of values
@@ -340,41 +340,41 @@ func (list *Float64ValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Float64(name string, optional bool) *float64 {
+func (ps *ParamSet) Float64(name string, optional bool, metadata interface{}) *float64 {
 	var tmp float64
 	sv := NewFloat64Value(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Float64 creates a parameter of type float64.
-func Float64(name string, optional bool) *float64 {
-	return defaultParamSet.Float64(name, optional)
+func Float64(name string, optional bool, metadata interface{}) *float64 {
+	return defaultParamSet.Float64(name, optional, metadata)
 }
 
-func (ps *paramSet) Float64List(name string, optional bool) *[]float64 {
+func (ps *ParamSet) Float64List(name string, optional bool, metadata interface{}) *[]float64 {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return Float64ListCustom(name, minLength, -1)
+	return ps.Float64ListCustom(name, minLength, -1, metadata)
 }
 
 // Float64List creates a parameter of type float64 that captures all the remaining arguments.
-func Float64List(name string, optional bool) *[]float64 {
-	return defaultParamSet.Float64List(name, optional)
+func Float64List(name string, optional bool, metadata interface{}) *[]float64 {
+	return defaultParamSet.Float64List(name, optional, metadata)
 }
 
-func (ps *paramSet) Float64ListCustom(name string, minLength int, maxLength int) *[]float64 {
+func (ps *ParamSet) Float64ListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]float64 {
 	list := new(Float64ValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]float64)(list)
 }
 
 // Float64ListCustom creates a parameter of type float64 that captures a list of the specified min and
 // max length from the remaining arguments
-func Float64ListCustom(name string, minLength int, maxLength int) *[]float64 {
-	return defaultParamSet.Float64ListCustom(name, minLength, maxLength)
+func Float64ListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]float64 {
+	return defaultParamSet.Float64ListCustom(name, minLength, maxLength, metadata)
 }
 
 // DurationValueList is a list of time.Duration that can receive a list of values
@@ -393,39 +393,39 @@ func (list *DurationValueList) Set(strings []string) error {
 	return nil
 }
 
-func (ps *paramSet) Duration(name string, optional bool) *time.Duration {
+func (ps *ParamSet) Duration(name string, optional bool, metadata interface{}) *time.Duration {
 	var tmp time.Duration
 	sv := NewDurationValue(tmp, &tmp)
-	Var(sv, name, optional)
+	ps.VarValue(sv, name, optional, metadata)
 	return &tmp
 }
 
 // Duration creates a parameter of type time.Duration.
-func Duration(name string, optional bool) *time.Duration {
-	return defaultParamSet.Duration(name, optional)
+func Duration(name string, optional bool, metadata interface{}) *time.Duration {
+	return defaultParamSet.Duration(name, optional, metadata)
 }
 
-func (ps *paramSet) DurationList(name string, optional bool) *[]time.Duration {
+func (ps *ParamSet) DurationList(name string, optional bool, metadata interface{}) *[]time.Duration {
 	minLength := 0
 	if !optional {
 		minLength = 1
 	}
-	return DurationListCustom(name, minLength, -1)
+	return ps.DurationListCustom(name, minLength, -1, metadata)
 }
 
 // DurationList creates a parameter of type time.Duration that captures all the remaining arguments.
-func DurationList(name string, optional bool) *[]time.Duration {
-	return defaultParamSet.DurationList(name, optional)
+func DurationList(name string, optional bool, metadata interface{}) *[]time.Duration {
+	return defaultParamSet.DurationList(name, optional, metadata)
 }
 
-func (ps *paramSet) DurationListCustom(name string, minLength int, maxLength int) *[]time.Duration {
+func (ps *ParamSet) DurationListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]time.Duration {
 	list := new(DurationValueList)
-	VarListCustom(list, name, minLength, maxLength)
+	ps.VarListCustom(list, name, minLength, maxLength, metadata)
 	return (*[]time.Duration)(list)
 }
 
 // DurationListCustom creates a parameter of type time.Duration that captures a list of the specified min and
 // max length from the remaining arguments
-func DurationListCustom(name string, minLength int, maxLength int) *[]time.Duration {
-	return defaultParamSet.DurationListCustom(name, minLength, maxLength)
+func DurationListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]time.Duration {
+	return defaultParamSet.DurationListCustom(name, minLength, maxLength, metadata)
 }

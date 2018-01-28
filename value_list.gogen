@@ -3,7 +3,7 @@ package params
 import (
     "time"
 
-    "github.com/cheekybits/genny/generic"
+    "github.com/mauricelam/genny/generic"
 )
 
 type gen generic.Type
@@ -22,37 +22,37 @@ func (list *GenValueList) Set(strings []string) error {
     return nil
 }
 
-func (ps *paramSet) Gen(name string, optional bool) *gen {
+func (ps *ParamSet) Gen(name string, optional bool, metadata interface{}) *gen {
     var tmp gen
     sv := NewGenValue(tmp, &tmp)
-    Var(sv, name, optional)
+    ps.VarValue(sv, name, optional, metadata)
     return &tmp
 }
 
 // Gen creates a parameter of type gen.
-func Gen(name string, optional bool) *gen {
-    return defaultParamSet.Gen(name, optional)
+func Gen(name string, optional bool, metadata interface{}) *gen {
+    return defaultParamSet.Gen(name, optional, metadata)
 }
 
-func (ps *paramSet) GenList(name string, optional bool) *[]gen {
+func (ps *ParamSet) GenList(name string, optional bool, metadata interface{}) *[]gen {
     minLength := 0
     if !optional { minLength = 1 }
-    return GenListCustom(name, minLength, -1)
+    return ps.GenListCustom(name, minLength, -1, metadata)
 }
 
 // GenList creates a parameter of type gen that captures all the remaining arguments.
-func GenList(name string, optional bool) *[]gen {
-    return defaultParamSet.GenList(name, optional)
+func GenList(name string, optional bool, metadata interface{}) *[]gen {
+    return defaultParamSet.GenList(name, optional, metadata)
 }
 
-func (ps *paramSet) GenListCustom(name string, minLength int, maxLength int) *[]gen {
+func (ps *ParamSet) GenListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]gen {
     list := new(GenValueList)
-    VarListCustom(list, name, minLength, maxLength)
+    ps.VarListCustom(list, name, minLength, maxLength, metadata)
     return (*[]gen)(list)
 }
 
 // GenListCustom creates a parameter of type gen that captures a list of the specified min and
 // max length from the remaining arguments
-func GenListCustom(name string, minLength int, maxLength int) *[]gen {
-    return defaultParamSet.GenListCustom(name, minLength, maxLength)
+func GenListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]gen {
+    return defaultParamSet.GenListCustom(name, minLength, maxLength, metadata)
 }

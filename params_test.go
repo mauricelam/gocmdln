@@ -9,14 +9,14 @@ func TestStringPtrParsing(t *testing.T) {
 
     // Test setup
 
-    reset()
-    arg1 := String("arg1", false)
-    arg2 := String("arg2", false)
-    arg3 := String("arg3", false)
+    p := new(ParamSet)
+    arg1 := p.String("arg1", false, nil)
+    arg2 := p.String("arg2", false, nil)
+    arg3 := p.String("arg3", false, nil)
 
     // Test execution
 
-    err := Parse([]string { "arg1", "arg2", "arg3" })
+    err := p.Parse([]string { "arg1", "arg2", "arg3" })
 
     // Assertions
 
@@ -30,15 +30,15 @@ func TestParamListParsing(t *testing.T) {
 
     // Test setup
 
-    reset()
-    arg1 := String("arg1", false)
-    arg2 := String("arg2", false)
-    argRest := StringList("argRest", false)
-    arg3 := String("arg3", false)
+    p := new(ParamSet)
+    arg1 := p.String("arg1", false, nil)
+    arg2 := p.String("arg2", false, nil)
+    argRest := p.StringList("argRest", false, nil)
+    arg3 := p.String("arg3", false, nil)
 
     // Test execution
 
-    err := Parse([]string { "arg1", "arg2", "arg3", "arg4", "arg5" })
+    err := p.Parse([]string { "arg1", "arg2", "arg3", "arg4", "arg5" })
 
     // Assertions
 
@@ -55,15 +55,15 @@ func TestCustomParamListParsing(t *testing.T) {
 
     // Test setup
 
-    reset()
-    arg1 := String("arg1", false)
-    arg2 := String("arg2", false)
-    argRest := StringListCustom("argRest", 1, 2)
-    arg3 := String("arg3", true)
+    p := new(ParamSet)
+    arg1 := p.String("arg1", false, nil)
+    arg2 := p.String("arg2", false, nil)
+    argRest := p.StringListCustom("argRest", 1, 2, nil)
+    arg3 := p.String("arg3", true, nil)
 
     // Test execution
 
-    err := Parse([]string { "arg1", "arg2", "arg3", "arg4", "arg5" })
+    err := p.Parse([]string { "arg1", "arg2", "arg3", "arg4", "arg5" })
 
     // Assertions
 
@@ -80,11 +80,11 @@ func TestErrors(t *testing.T) {
 
     // Test setup
 
-    reset()
-    String("arg1", false)
+    p := new(ParamSet)
+    p.String("arg1", false, nil)
 
     t.Run("too many arguments", func (t *testing.T) {
-        err := Parse([]string { "arg1", "arg2", "arg3" })
+        err := p.Parse([]string { "arg1", "arg2", "arg3" })
 
         // Assertions
         if err == nil || err.Error() != "Too many arguments. 2 remaining" {
@@ -93,11 +93,42 @@ func TestErrors(t *testing.T) {
     })
 
     t.Run("too many arguments", func (t *testing.T) {
-        err := Parse([]string {})
+        err := p.Parse([]string {})
 
         // Assertions
         if err == nil || err.Error() != `Missing required argument "arg1"` {
             t.Errorf("Error should be thrown, but was: %v", err)
         }
     })
+}
+
+func TestRequiredArgAfterList(t *testing.T) {
+    // Setup
+    p := new(ParamSet)
+    p.StringList("argList", true, nil)
+    p.String("arg2", false, nil)
+
+    // Execution
+    err := p.Parse([]string {})
+
+    // Assertions
+    if err == nil || err.Error() != `Missing required argument "arg2"` {
+        t.Errorf("Unexpected error: %v", err)
+    }
+}
+
+func TestMetadata(t *testing.T) {
+    // Setup
+    p := new(ParamSet)
+    helloArg := p.String("hello", false, "mystring")
+
+    // Execution
+    err := p.Parse([]string {"world"})
+
+    // Assertions
+    if err != nil { t.Errorf("Unexpected error %v", err) }
+    if *helloArg != "world" { t.Errorf(`helloArg should be "world"`, *helloArg) }
+    if metadata := (*p)[0].Metadata(); metadata != "mystring" {
+        t.Errorf(`Unexpected metadata "%v"`, metadata)
+    }
 }

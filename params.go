@@ -19,17 +19,22 @@ type valueContainer struct {
 }
 
 func (vc valueContainer) Set(vals []string) error {
+    if len(vals) != 1 {
+        return fmt.Errorf("Cannot set multiple values %v", vals)
+    }
     return vc.value.Set(vals[0])
 }
 
-type paramSet []ParamSpec
+type ParamSet []ParamSpec
 
-// func (ps *paramSet) 
+// func (ps *ParamSet) 
 
-var defaultParamSet = new(paramSet)
+var defaultParamSet = new(ParamSet)
 
-func reset() {
-    defaultParamSet = new(paramSet)
+// DefaultParamSet gets the default ParamSet used when the Var / String etc functions are called
+// on the package directly.
+func DefaultParamSet() *ParamSet {
+    return defaultParamSet
 }
 
 // ParamSpec is an interface for capturing positional arguments. The argument passing is done in
@@ -57,6 +62,10 @@ type ParamSpec interface {
     Set([]string) error
 
     Name() string
+
+    // Metadata field to contain arbitrary data associated with this parameter. Typically this
+    // would contain the usage string and other help values, but it can contain any arbitrary value.
+    Metadata() interface{}
 }
 
 type commonParamSpec struct {
@@ -64,6 +73,7 @@ type commonParamSpec struct {
     minLength int
     maxLength int
     set func([]string) error
+    metadata interface{}
 }
 
 var _ ParamSpec = (*commonParamSpec)(nil)
@@ -84,45 +94,69 @@ func (param *commonParamSpec) Set(args []string) error {
 }
 
 func (param *commonParamSpec) Name() string {
+    // TODO: use Stringer instead?
     return param.name
 }
 
-func (ps *paramSet) Var(value Value, name string, optional bool) {
+func (param *commonParamSpec) Metadata() interface{} {
+    return param.metadata
+}
+
+func (ps *ParamSet) VarValue(value Value, name string, optional bool, metadata interface{}) {
     minLength := 0
     if !optional { minLength = 1 }
-    ps.VarListCustom(valueContainer{value}, name, minLength, 1)
+    ps.VarListCustom(valueContainer{value}, name, minLength, 1, metadata)
 }
 
 // Var defines a parameter with a Value interface to receive the value
-func Var(value Value, name string, optional bool) {
-    defaultParamSet.Var(value, name, optional)
+func VarValue(value Value, name string, optional bool, metadata interface{}) {
+    defaultParamSet.VarValue(value, name, optional, metadata)
 }
 
-func (ps *paramSet) VarList(value ValueReceiver, name string, optional bool) {
+func (ps *ParamSet) Var(value ValueReceiver, name string, optional bool, metadata interface{}) {
     minLength := 0
     if !optional { minLength = 1 }
-    ps.VarListCustom(value, name, minLength, -1)
+    ps.VarListCustom(value, name, minLength, 1, metadata)
+}
+
+func Var(value ValueReceiver, name string, optional bool, metadata interface{}) {
+    defaultParamSet.Var(value, name, optional, metadata)
+}
+
+func (ps *ParamSet) VarList(value ValueReceiver, name string, optional bool, metadata interface{}) {
+    minLength := 0
+    if !optional { minLength = 1 }
+    ps.VarListCustom(value, name, minLength, -1, metadata)
 }
 
 // VarList creates a parameter using ValueReceiver that captures all the remaining arguments.
-func VarList(value ValueReceiver, name string, optional bool)  {
-    defaultParamSet.VarList(value, name, optional)
+func VarList(value ValueReceiver, name string, optional bool, metadata interface{}) {
+    defaultParamSet.VarList(value, name, optional, metadata)
 }
 
-func (ps *paramSet) VarListCustom(value ValueReceiver, name string, minLength int, maxLength int) {
+func (ps *ParamSet) VarListCustom(value ValueReceiver, name string, minLength int, maxLength int, metadata interface{}) {
     paramSpec := &commonParamSpec{
         name: name,
         minLength: minLength,
         maxLength: maxLength,
         set: value.Set,
+        metadata: metadata,
     }
     *ps = append(*ps, paramSpec)
 }
 
 // VarListCustom creates a parameter using ValueReceiver that captures a list of the specified min
 // and max length from the remaining arguments
-func VarListCustom(value ValueReceiver, name string, minLength int, maxLength int)  {
-    defaultParamSet.VarListCustom(value, name, minLength, maxLength)
+func VarListCustom(value ValueReceiver, name string, minLength int, maxLength int, metadata interface{}) {
+    defaultParamSet.VarListCustom(value, name, minLength, maxLength, metadata)
+}
+
+func (ps *ParamSet) Param(paramSpec ParamSpec) {
+    *ps = append(*ps, paramSpec)
+}
+
+func Param(paramSpec ParamSpec) {
+    defaultParamSet.Param(paramSpec)
 }
 
 // Parse parses the given string according to the parameters specs defined earlier using Var(...),
@@ -131,7 +165,7 @@ func Parse(argv []string) error {
     return defaultParamSet.Parse(argv)
 }
 
-func (paramSet *paramSet) Parse(argv []string) error {
+func (paramSet *ParamSet) Parse(argv []string) error {
     if paramSet == nil {
         panic("paramSet cannot be null")
     }
@@ -141,7 +175,6 @@ func (paramSet *paramSet) Parse(argv []string) error {
     for i, paramSpec := range *paramSet {
         minLengths[i] = paramSpec.MinLength()
         minArgCount += minLengths[i]
-        fmt.Println("Arg", paramSpec, "ML", minLengths[i])
     }
 
     // Iterate over the arguments again to capture the variable length arguments
@@ -152,15 +185,22 @@ func (paramSet *paramSet) Parse(argv []string) error {
         ml := minLengths[i]
         sliceEnd := len(argv) - remainingMinArg + ml
         if sliceEnd <= argvIndex {
-            // Pass an empty slice to CaptureLength, even though we don't have enough arguments
-            // so that the error message can be generated
-            // sliceEnd = argvIndex
-            // FIXME: comments
-            return argumentErrorf(`Missing required argument "%s"`, paramSpec.Name())
+            if ml > 0 {
+                // Pass an empty slice to CaptureLength, even though we don't have enough arguments
+                // so that the error message can be generated
+                // sliceEnd = argvIndex
+                // FIXME: comments
+                return argumentErrorf(`Missing required argument "%s"`, paramSpec.Name())
+            } else {
+                // No argument available for parsing, but this param is not required
+                continue
+            }
         }
         l, err := paramSpec.CaptureLength(argv[argvIndex:sliceEnd])
         if err != nil { return &ArgumentError{ err } }
-        if l < ml { return argumentErrorf(`Argument "%s" captured less than min length`, paramSpec.Name()) }
+        if l < ml {
+            return argumentErrorf(`Argument "%s" captured less than min length`, paramSpec.Name())
+        }
         if argvIndex > argvIndex + l {
             return argumentErrorf(`Argument "%s" captured more than it should`, paramSpec.Name())
         }

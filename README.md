@@ -29,7 +29,7 @@ import (
 
 // Usage: sed [OPTION]... <command> [input-files]...
 func main() {
-  command := params.String("command", /* optional */ true, /* metadata */ nil);
+  command := params.String("command", /* optional */ false, /* metadata */ nil);
   inputFiles := params.StringList("inputFiles", /* optional */ true, /* metadata */ nil);
 
   copy := flag.Bool("copy", false, "use copy instead of rename when shuffling files in -i mode")

@@ -14,6 +14,7 @@ type ValueReceiver interface {
     Set([]string) error
 }
 
+// A container for Value to implement ValueReceiver
 type valueContainer struct {
     value Value
 }
@@ -25,9 +26,10 @@ func (vc valueContainer) Set(vals []string) error {
     return vc.value.Set(vals[0])
 }
 
+// ParamSet represents a set of parameter specifications. Typically, most applications do not need
+// to use this, but can use the functions defined in this "params" package directly, which forwards
+// the methods to DefaultParamSet.
 type ParamSet []ParamSpec
-
-// func (ps *ParamSet) 
 
 var defaultParamSet = new(ParamSet)
 
@@ -61,11 +63,11 @@ type ParamSpec interface {
     // Sets the given string slice, which has the length returned in CaptureLength.
     Set([]string) error
 
-    Name() string
-
     // Metadata field to contain arbitrary data associated with this parameter. Typically this
     // would contain the usage string and other help values, but it can contain any arbitrary value.
     Metadata() interface{}
+
+    fmt.Stringer
 }
 
 type commonParamSpec struct {
@@ -93,8 +95,7 @@ func (param *commonParamSpec) Set(args []string) error {
     return param.set(args)
 }
 
-func (param *commonParamSpec) Name() string {
-    // TODO: use Stringer instead?
+func (param *commonParamSpec) String() string {
     return param.name
 }
 
@@ -102,59 +103,90 @@ func (param *commonParamSpec) Metadata() interface{} {
     return param.metadata
 }
 
+// VarValue defines a parameter with a Value interface to receive the value.
 func (ps *ParamSet) VarValue(value Value, name string, optional bool, metadata interface{}) {
-    minLength := 0
-    if !optional { minLength = 1 }
-    ps.VarListCustom(valueContainer{value}, name, minLength, 1, metadata)
+    ps.Param(NewValueParamSpec(value, name, optional, metadata))
 }
 
-// Var defines a parameter with a Value interface to receive the value
+// VarValue defines a parameter with a Value interface to receive the value on the DefaultParamSet.
 func VarValue(value Value, name string, optional bool, metadata interface{}) {
     defaultParamSet.VarValue(value, name, optional, metadata)
 }
 
-func (ps *ParamSet) Var(value ValueReceiver, name string, optional bool, metadata interface{}) {
-    minLength := 0
-    if !optional { minLength = 1 }
-    ps.VarListCustom(value, name, minLength, 1, metadata)
+// NewValueParamSpec defines a new ParamSpec with a Value interface to receive the value.
+func NewValueParamSpec(value Value, name string, optional bool, metadata interface{}) ParamSpec {
+    return NewParamSpec(valueContainer{value}, name, optional, metadata)
 }
 
+// Var defines a parameter with a ValueReceiver to receive the value. The ValueReceiver used in this
+// method is only expected to receive 1 value in the string slice.
+func (ps *ParamSet) Var(value ValueReceiver, name string, optional bool, metadata interface{}) {
+    ps.Param(NewParamSpec(value, name, optional, metadata))
+}
+
+// Var defines a parameter with a ValueReceiver to receive the value on the DefaultParamSet. The
+// ValueReceiver used in this function is only expected to receive 1 value in the string slice.
 func Var(value ValueReceiver, name string, optional bool, metadata interface{}) {
     defaultParamSet.Var(value, name, optional, metadata)
 }
 
-func (ps *ParamSet) VarList(value ValueReceiver, name string, optional bool, metadata interface{}) {
+// NewParamSpec defines a new ParamSpec with a ValueReceiver to receive the value. The ValueReceiver
+// used in this function is only expected to receive 1 value in the string slice.
+func NewParamSpec(value ValueReceiver, name string, optional bool, metadata interface{}) ParamSpec {
     minLength := 0
     if !optional { minLength = 1 }
-    ps.VarListCustom(value, name, minLength, -1, metadata)
+    return NewCustomParamSpec(value, name, minLength, 1, metadata)
 }
 
-// VarList creates a parameter using ValueReceiver that captures all the remaining arguments.
+// VarList defines a parameter list using ValueReceiver that captures all the remaining arguments.
+func (ps *ParamSet) VarList(value ValueReceiver, name string, optional bool, metadata interface{}) {
+    ps.Param(NewListParamSpec(value, name, optional, metadata))
+}
+
+// VarList defines a parameter list using ValueReceiver that captures all the remaining arguments on
+// the DefaultParamSet.
 func VarList(value ValueReceiver, name string, optional bool, metadata interface{}) {
     defaultParamSet.VarList(value, name, optional, metadata)
 }
 
+// NewListParamSpec defines a parameter list using ValueReceiver that captures all the remaining
+// arguments.
+func NewListParamSpec(value ValueReceiver, name string, optional bool, metadata interface{}) ParamSpec {
+    minLength := 0
+    if !optional { minLength = 1 }
+    return NewCustomParamSpec(value, name, minLength, -1, metadata)
+}
+
+// VarListCustom adds a parameter list spec using ValueReceiver that captures a list of the
+// specified min and max length from the remaining arguments.
 func (ps *ParamSet) VarListCustom(value ValueReceiver, name string, minLength int, maxLength int, metadata interface{}) {
-    paramSpec := &commonParamSpec{
+    ps.Param(NewCustomParamSpec(value, name, minLength, maxLength, metadata))
+}
+
+// VarListCustom adds a parameter list spec using ValueReceiver that captures a list of the
+// specified min and max length from the remaining arguments on the DefaultParamSet.
+func VarListCustom(value ValueReceiver, name string, minLength int, maxLength int, metadata interface{}) {
+    defaultParamSet.VarListCustom(value, name, minLength, maxLength, metadata)
+}
+
+// NewCustomParamSpec creates a parameter list spec using ValueReceiver that captures a list of the
+// specified min and max length from the remaining arguments.
+func NewCustomParamSpec(value ValueReceiver, name string, minLength int, maxLength int, metadata interface{}) ParamSpec {
+    return &commonParamSpec{
         name: name,
         minLength: minLength,
         maxLength: maxLength,
         set: value.Set,
         metadata: metadata,
     }
-    *ps = append(*ps, paramSpec)
 }
 
-// VarListCustom creates a parameter using ValueReceiver that captures a list of the specified min
-// and max length from the remaining arguments
-func VarListCustom(value ValueReceiver, name string, minLength int, maxLength int, metadata interface{}) {
-    defaultParamSet.VarListCustom(value, name, minLength, maxLength, metadata)
-}
-
+// Param adds a ParamSpec to the ParamSet
 func (ps *ParamSet) Param(paramSpec ParamSpec) {
     *ps = append(*ps, paramSpec)
 }
 
+// Param adds a ParamSpec to the DefaultParamSet
 func Param(paramSpec ParamSpec) {
     defaultParamSet.Param(paramSpec)
 }
@@ -165,14 +197,18 @@ func Parse(argv []string) error {
     return defaultParamSet.Parse(argv)
 }
 
-func (paramSet *ParamSet) Parse(argv []string) error {
-    if paramSet == nil {
-        panic("paramSet cannot be null")
+// Parse parses the given string list as the arguments, according to the ParamSpecs previously
+// added to the ParamSet.
+// See the documentation on ParamSpec for details on the parsing.
+func (ps *ParamSet) Parse(argv []string) error {
+    if ps == nil {
+        // No parameter set, just return
+        return nil
     }
     // First pass determines the min length of all the arguments
-    minLengths := make([]int, len(*paramSet))
+    minLengths := make([]int, len(*ps))
     minArgCount := 0
-    for i, paramSpec := range *paramSet {
+    for i, paramSpec := range *ps {
         minLengths[i] = paramSpec.MinLength()
         minArgCount += minLengths[i]
     }
@@ -181,31 +217,24 @@ func (paramSet *ParamSet) Parse(argv []string) error {
     // In this pass, the remaining arguments are allocated 
     remainingMinArg := minArgCount
     argvIndex := 0
-    for i, paramSpec := range *paramSet {
+    for i, paramSpec := range *ps {
         ml := minLengths[i]
         sliceEnd := len(argv) - remainingMinArg + ml
         if sliceEnd <= argvIndex {
             if ml > 0 {
-                // Pass an empty slice to CaptureLength, even though we don't have enough arguments
-                // so that the error message can be generated
-                // sliceEnd = argvIndex
-                // FIXME: comments
-                return argumentErrorf(`Missing required argument "%s"`, paramSpec.Name())
-            } else {
-                // No argument available for parsing, but this param is not required
-                continue
+                // Argument is required but missing. Print error message and return.
+                return argumentErrorf(`Missing required argument "%s"`, paramSpec.String())
             }
+            // No argument available for parsing, but this param is not required
+            continue
         }
         l, err := paramSpec.CaptureLength(argv[argvIndex:sliceEnd])
         if err != nil { return &ArgumentError{ err } }
         if l < ml {
-            return argumentErrorf(`Argument "%s" captured less than min length`, paramSpec.Name())
+            return argumentErrorf(`Argument "%s" captured less than min length`, paramSpec.String())
         }
-        if argvIndex > argvIndex + l {
-            return argumentErrorf(`Argument "%s" captured more than it should`, paramSpec.Name())
-        }
-        if argvIndex < argvIndex + l {
-            // Don't call Set if the slice is empty, to avoid initializing pointers when no value
+        if l > 0 {
+            // Don't call Set if the slice is empty, to avoid initializing pointers when no values
             // will be added
             paramSpec.Set(argv[argvIndex:argvIndex + l])
         }

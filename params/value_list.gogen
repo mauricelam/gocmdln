@@ -1,0 +1,63 @@
+package params
+
+import (
+    "time"
+
+    "github.com/mauricelam/genny/generic"
+)
+
+// PlaceholderType is the generic type used by genny to generate code
+type PlaceholderType generic.Type
+
+// PlaceholderTypeValueList is a list of placeholderType that can receive a list of values
+type PlaceholderTypeValueList []PlaceholderType
+
+// Set sets the list of strings onto the string
+func (list *PlaceholderTypeValueList) Set(strings []string) error {
+    for _, s := range strings {
+        iv := new(PlaceholderTypeValue)
+        err := iv.Set(s)
+        if err != nil { return err }
+        *list = append(*list, PlaceholderType(*iv))
+    }
+    return nil
+}
+
+// PlaceholderType creates a parameter of type placeholderType.
+func (ps *ParamSet) PlaceholderType(name string, optional bool, metadata interface{}) *PlaceholderType {
+    var tmp PlaceholderType
+    sv := NewPlaceholderTypeValue(tmp, &tmp)
+    ps.VarValue(sv, name, optional, metadata)
+    return &tmp
+}
+
+// PlaceholderType creates a parameter of type placeholderType.
+func PlaceholderType(name string, optional bool, metadata interface{}) *PlaceholderType {
+    return defaultParamSet.PlaceholderType(name, optional, metadata)
+}
+
+// PlaceholderTypeList creates a parameter of type placeholderType that captures all the remaining arguments.
+func (ps *ParamSet) PlaceholderTypeList(name string, optional bool, metadata interface{}) *[]PlaceholderType {
+    minLength := 0
+    if !optional { minLength = 1 }
+    return ps.PlaceholderTypeListCustom(name, minLength, -1, metadata)
+}
+
+// PlaceholderTypeList creates a parameter of type placeholderType that captures all the remaining arguments.
+func PlaceholderTypeList(name string, optional bool, metadata interface{}) *[]PlaceholderType {
+    return defaultParamSet.PlaceholderTypeList(name, optional, metadata)
+}
+
+// PlaceholderTypeListCustom creates a parameter of type placeholderType that captures a list of the specified min and
+// max length from the remaining arguments
+func (ps *ParamSet) PlaceholderTypeListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]PlaceholderType {
+    list := new(PlaceholderTypeValueList)
+    ps.VarListCustom(list, name, minLength, maxLength, metadata)
+    return (*[]PlaceholderType)(list)
+}
+
+// PlaceholderTypeListCustom creates a parameter of type placeholderType that captures a list of the specified min and
+// max length from the remaining arguments
+func PlaceholderTypeListCustom(name string, minLength int, maxLength int, metadata interface{}) *[]PlaceholderType {
+    return defaultParamSet.PlaceholderTypeListCustom(name, minLength, maxLength, metadata)
+}

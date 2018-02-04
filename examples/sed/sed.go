@@ -10,7 +10,7 @@ import (
 )
 
 /**
-    sed [OPTION]... [input-file]...
+    sed [OPTION]... <command> [input-file]...
 
     -n, --quiet, --silent
       suppress automatic printing of pattern space
